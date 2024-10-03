@@ -74,3 +74,33 @@ module "vpc" {
     route_table_id = module.vpc.pvt_rt_id
   }
 }
+module "security_group" {
+  source = "../aws-securitygroup"
+  web_sg_info = {
+    name        = "web_sg"
+    description = "Allow TLS inbound traffic and all outbound traffic"
+    vpc_id      = module.vpc.vpc_id
+    tags = {
+      Name = "web_sg"
+    }
+  }
+  web_sg_ingress_rule_info = [{
+    security_group_id = module.security_group.security_group_id
+    cidr_ipv4         = module.vpc.vpc_cidr
+    from_port         = 22
+    ip_protocol       = "tcp"
+    to_port           = 22
+    },
+    {
+      security_group_id = module.security_group.security_group_id
+      cidr_ipv4         = module.vpc.vpc_cidr
+      from_port         = 0
+      ip_protocol       = "tcp"
+      to_port           = 5000
+  }]
+  web_sg_egress_rule_info = {
+    security_group_id = module.security_group.security_group_id
+    cidr_ipv4         = "0.0.0.0/0"
+    ip_protocol       = "-1"
+  }
+}
